@@ -47,8 +47,10 @@ namespace Airports
             distance = distance * 60 * 1.1515 * 1.609344;//in kilometers
             return distance;
         }
-        protected internal static double GetPriceByPath(Airport source, Airport destination)
+        protected internal static double GetPriceByPath(string sourceCode, string destinationCode)
         {
+            var source = AirlineData.GetAirPort(sourceCode);
+            var destination = AirlineData.GetAirPort(destinationCode);
             var distance = GetPath(source, destination);
             return distance * PRICE_FOR_1_KILOMETR;
 
@@ -56,85 +58,68 @@ namespace Airports
         protected static internal NextAirport DijkstraMinPath(string sourceCode, string destinationCode)
         {
             try {
-                //LinkedList<NextAirport> flight = new LinkedList<NextAirport>();
-                var routes = AirlineData.GetRoutes();
+        
                 Queue<NextAirport> flight = new Queue<NextAirport>();
-                List<Airport> visited = new List<Airport>();
+                List<string> visited = new List<string>();
                 Stack<NextAirport> result = new Stack<NextAirport>();
                 Airport source = AirlineData.GetAirPort(sourceCode);
-                Airport destination = AirlineData.GetAirPort(destinationCode);
-                NextAirport next = new NextAirport(source, 0, AirlineData.GetNeighbours(sourceCode, routes));//min weight
-                var next = AirlineData(so                                                                                             //var ne = next.adjacementList.Contains()
+                var next = AirlineData.GetNextStation(sourceCode);
+                next.Weight = 0;//sorce
                 flight.Enqueue(next);
                 result.Push(next);
-                //SortQueue(ref flight);
                 double BestPrice = 0;
                 var counter = 0; 
-                //source is visited
                 while (flight.Count != 0)
                 {
-                    //Console.ReadKey();
-
+ 
                     var _flight = flight.Dequeue();//remove first minimum
-                    //Console.Write(counter);
-                    //Console.WriteLine(_flight.current.IATA);
-                    
-                    if (visited.Contains(_flight.current))
-                        continue;
-
-
-
-                    if (_flight.current.IATA == destinationCode)//we are here
+                    if (_flight.Current== destinationCode)//we are here
                         return _flight;
 
                     foreach (var neighbour in _flight.adjacementList)
                     {
+                        
                         if (neighbour != null)
-                        {            
-                            if (!visited.Contains(neighbour))
+                        {
+                           // NextAirport _next = new NextAirport(neighbour.IATA, ,);
+                            NextAirport _next = AirlineData.GetNextStation(neighbour.IATA);
+                           
+                            //BestPrice = _flight.Weight + GetPriceByPath(_flight.Current, neighbour.IATA);
+                            if (!visited.Contains(neighbour.IATA)&& _next!=null)
                             {
-                                NextAirport _next = new NextAirport(neighbour, BestPrice, AirlineData.GetNeighbours(neighbour.IATA, routes));
+                                _next.Weight = GetPriceByPath(_flight.Current, neighbour.IATA);
+
                                 Console.Write(counter);
                                 Console.WriteLine(neighbour.IATA);
-
+                        
                                 if (BestPrice == 0)
                                 {
-                                    BestPrice = GetPriceByPath(_flight.current, neighbour);//_next.weight;
+                                    BestPrice = GetPriceByPath(_flight.Current, neighbour.IATA);//_next.weight;
                                 }
                                 else
                                 {
-                                    if (BestPrice > _next.weight + _flight.weight)
+                                    if (BestPrice > _next.Weight)
                                     {
-                                        BestPrice = _next.weight + _flight.weight;
-
+                                        BestPrice = _next.Weight;
+                                        result.Push(_next);
                                     }
+                                    
                                 }
                                 flight.Enqueue(_next);
                                 SortQueue(ref flight);
-                                NextAirport path = new NextAirport(_flight.current, BestPrice, AirlineData.GetNeighbours(neighbour.AirportName, routes));
-                                result.Push(path);
-                                //Console.ReadKey();
-
-
-
-                                // if ()
-
-                                //flight.Add(_next);
-
-
+                                visited.Add(_flight.Current);
                             }
                         }
-
-
                     }
                     counter++;
-                    visited.Add(_flight.current);
+                   
                 }
                 
                 Console.ReadKey();
 
             }
             catch(Exception r)
+
             {
                 Console.WriteLine(r);
             }
@@ -165,7 +150,7 @@ namespace Airports
         protected static internal void SortQueue( ref Queue<NextAirport> queue)
         {
 
-            queue.OrderBy(d => d.weight);
+            queue.OrderBy(d => d.Weight);
             //return q;
         }
     }

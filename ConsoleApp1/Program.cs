@@ -7,8 +7,8 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             //Graph.GetNextPorts();
-            // var day =  Graph.DijkstraMinPath("DME", "AYT");
-            AirlineData.WriteCsw();
+            var day =  Graph.DijkstraMinPath("VLC", "PDX");
+            //AirlineData.WriteCsw();
            // AirlineData.GetAirPort("GKA");
            // string var = "\"GKA\"";
             //string ne = var.Replace("\\","");

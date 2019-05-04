@@ -32,16 +32,7 @@ namespace Airports
                         var name = temp[4].Replace("\"", "");
                         if (temp[4] == airportCodeName)
                         {
-                            airport = new Airport
-                            {
-                                AirportId = temp[0],
-                                AirportName = temp[1],
-                                CityName = temp[2],
-                                CountryName = temp[3],
-                                Latitude = double.Parse(temp[6], System.Globalization.CultureInfo.InvariantCulture),
-                                IATA = temp[4],
-                                Longitude = double.Parse(temp[7], System.Globalization.CultureInfo.InvariantCulture)
-                            };
+                            var airport = CreateAirport(temp);
                             return airport;
                         }
                     }
@@ -53,70 +44,70 @@ namespace Airports
             }
             return null;
         }
-
-        protected static internal List<Airport> GetAirPort()
+        protected static internal Airport CreateAirport(string [] temp)
         {
-            //  try
-            //  {
-            List<Airport> listOfAirports = new List<Airport>();
-
-            using (var textFile = System.IO.File.OpenText("airports.txt"))
+            airport = new Airport
             {
+                AirportId = temp[0].ToString(),
+                AirportName = temp[1].ToString(),
+                CityName = temp[2].ToString(),
+                CountryName = temp[3].ToString(),
+                IATA = temp[4].ToString(),
 
-                string line = null;
-
-                while ((line = textFile.ReadLine()) != null)
-                {
-                    string[] temp = line.Replace("\"", "").Split(",", System.StringSplitOptions.RemoveEmptyEntries);
-
-
+            };
+            switch (temp.Length)
+            {
+                case 14:
+                    airport.Latitude = double.Parse(temp[6].ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                    airport.Longitude = double.Parse(temp[7].ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                case 15:
                     airport = new Airport
                     {
                         AirportId = temp[0].ToString(),
                         AirportName = temp[1].ToString(),
                         CityName = temp[2].ToString(),
-                        CountryName = temp[3].ToString(),
-                        IATA = temp[4].ToString(),
+                        CountryName = temp[4].ToString(),
+                        IATA = temp[5].ToString(),
+                        Latitude = double.Parse(temp[7].ToString(), System.Globalization.CultureInfo.InvariantCulture),
+                        Longitude = double.Parse(temp[8].ToString(), System.Globalization.CultureInfo.InvariantCulture)
 
                     };
-                    switch (temp.Length)
-                    {
-                        case 14:
-                            airport.Latitude = double.Parse(temp[6].ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                            airport.Longitude = double.Parse(temp[7].ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                            break;
-                        case 15:
-                            airport = new Airport
-                            {
-                                AirportId = temp[0].ToString(),
-                                AirportName = temp[1].ToString(),
-                                CityName = temp[2].ToString(),
-                                CountryName = temp[4].ToString(),
-                                IATA = temp[5].ToString(),
-                                Latitude = double.Parse(temp[7].ToString(), System.Globalization.CultureInfo.InvariantCulture),
-                                Longitude = double.Parse(temp[8].ToString(), System.Globalization.CultureInfo.InvariantCulture)
-
-                            };
-                            break;
-                        case 13:
-                            airport.Latitude = double.Parse(temp[5].ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                            airport.Longitude = double.Parse(temp[6].ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                            break;
-                    }
-
-                    listOfAirports.Add(airport);
-
-
-                }
-
+                    break;
+                case 13:
+                    airport.Latitude = double.Parse(temp[5].ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                    airport.Longitude = double.Parse(temp[6].ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                    break;
             }
-            return listOfAirports;
+            return airport;
         }
-        // catch (Exception a)
-        //  {
-        //      Console.WriteLine(a.Message);
-        //  }
-        // return null;
+
+        protected static internal List<Airport> GetAirPort()
+        {
+            try
+            {
+                List<Airport> listOfAirports = new List<Airport>();
+
+                using (var textFile = System.IO.File.OpenText("airports.txt"))
+                {
+
+                    string line = null;
+
+                    while ((line = textFile.ReadLine()) != null)
+                    {
+                        string[] temp = line.Replace("\"", "").Split(",", System.StringSplitOptions.RemoveEmptyEntries);
+                        var airport = CreateAirport(temp);
+                        listOfAirports.Add(airport);
+                    }
+                }
+                return listOfAirports;
+            }
+            catch (Exception a)
+            {
+                Console.WriteLine(a.Message);
+            }
+            return null;
+        }
 
 
 
@@ -183,8 +174,6 @@ namespace Airports
                     {
                         var next = GetAirPort(port.DestinationName);
 
-
-
                         if (neighbours.Count == 0)
                         {
                             neighbours?.AddFirst(next);
@@ -222,7 +211,7 @@ namespace Airports
                         var sourceName = airport.AirportName.ToString();
                         var neighbour = GetNeighbours(source, routes);
                         var adjacements = JsonConvert.SerializeObject(neighbour);
-                        var newLine = string.Format("{0},{1},{2}", source, sourceName, adjacements);
+                        var newLine = string.Format("{0};{1};{2}", source, sourceName, adjacements);
                         if (neighbour.Count != 0)
                             csv.AppendLine(newLine);
                     }
@@ -243,7 +232,7 @@ namespace Airports
                     string line = null;
                     while ((line = textFile.ReadLine()) != null)
                     {
-                        string[] temp = line.Split(",", System.StringSplitOptions.RemoveEmptyEntries);
+                        string[] temp = line.Split(";", System.StringSplitOptions.RemoveEmptyEntries);
                         if (temp[0] == stationCode)
                         {
                             NextAirport nextAirport = new NextAirport(temp[0], temp[1], -1, JsonConvert.DeserializeObject<LinkedList<Airport>>(temp[2]));
